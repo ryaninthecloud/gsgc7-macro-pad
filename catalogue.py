@@ -1,6 +1,8 @@
 '''
 Catalogue of response options
 
+D = Dial --> needs to search for the integers dialled
+
 dispatch catalogue:
 strings:
     if begin with < then sent to serial device
@@ -12,9 +14,11 @@ strings:
 
 windows_dispatch_catalogue = {
     'D' : {
-        '1' : print
+        '1' : '!Someone is calling us!'
     },
-    'H' : ''
+    'H' : {
+        10 
+    }
 }
 
 macos_dispatch_catalogue = {

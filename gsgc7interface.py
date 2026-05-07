@@ -5,6 +5,8 @@ the GSGC7 unit and fires
 the relevant automation.
 
 TODO: MacOS port
+TODO: Detect OS & call catalogue reader
+
 '''
 
 from serial import (
@@ -29,7 +31,8 @@ class GSGC7Interface:
         self.com_port = com_port
         self.serial_cx = self.__create_connection()
         self.control_characters = ['\n', '\r', '\r\n']
-        self.read_catalogue('windows')
+        self.__read_catalogue('windows')
+
     def __create_connection(self) -> Serial:
         '''
         Creates connection to the device
@@ -53,7 +56,7 @@ class GSGC7Interface:
             print('An unexpected error has occured when connecting to the given COM port: ', excpt)
             exit(0)
 
-    def __parse_instruction(self, raw_command: bytes) -> str | None:
+    def __parse_instruction(self, raw_command: str) -> str | None:
         '''
         Consumes a given byte string and returns
         only the instructive portion of the AT
@@ -65,28 +68,19 @@ class GSGC7Interface:
         Returns:
             cleaned_command (str): cleaned non-AT portion of command
         '''
-        try:
-            decoded_raw_command = raw_command.decode(encoding='utf-8')
-            decoded_raw_command = decoded_raw_command.upper().strip()
-        except UnicodeDecodeError:
-            print('Unable to decode the given command')
+        stdised_command = raw_command.upper().strip()
+
+        if not stdised_command or \
+        len(stdised_command) <= 2 or \
+        stdised_command[:2] not in ('AT', '<'):
+            print('Command invalid and not parsed: ', stdised_command)
             return None
 
-        if decoded_raw_command in self.control_characters:
-            print('Something here to flush the cache')
+        if stdised_command[0] == '<':
+            print('Interpreter message received: ', stdised_command)
             return None
 
-        if not decoded_raw_command or \
-        len(decoded_raw_command) <= 2 or \
-        decoded_raw_command[:2] not in ('AT', '<'):
-            print('Command invalid and not parsed: ', decoded_raw_command)
-            return None
-
-        if decoded_raw_command[0] == '<':
-            print('Interpreter message received: ', decoded_raw_command)
-            return None
-
-        instructive_portion = decoded_raw_command[2:]
+        instructive_portion = stdised_command[2:]
 
         return instructive_portion
 
@@ -129,18 +123,7 @@ class GSGC7Interface:
         print('Delivery failed within alloted tries.') if not delivered else None
         return delivered
 
-    def send_ringtone(self) -> bool:
-        '''
-        Sends a ring command to the GSGC7 which
-        sounds a bleep and illuminates the red
-        ISDN Line light for a short period.
-
-        Returns:
-            result (bool)
-        '''
-        return self.__send_instruction('RING')
-
-    def read_catalogue(self, os_type: str) ->  None:
+    def __read_catalogue(self, os_type: str) ->  None:
         '''
         Read from the catalogue file in same directory
 
@@ -163,8 +146,18 @@ class GSGC7Interface:
 
         return None
         
+    def send_ringtone(self) -> bool:
+        '''
+        Sends a ring command to the GSGC7 which
+        sounds a bleep and illuminates the red
+        ISDN Line light for a short period.
 
-    def handle_incoming_instruction(self, raw_instr: bytes) -> None:
+        Returns:
+            result (bool)
+        '''
+        return self.__send_instruction('RING')
+
+    def handle_incoming_instruction(self, raw_command: str) -> None:
         '''
         Reads the catalogue of automations
         and calls the correct dispatcher
@@ -176,11 +169,56 @@ class GSGC7Interface:
         Returns:
             None
         '''
-        cleaned_instruction = self.__parse_instruction(raw_instr)
+        if not self.dispatch_catalogue:
+            print('No dispatch catalogue loaded')
+            exit(0)
 
+        cleaned_instruction = self.__parse_instruction(raw_command)
+
+        print('handler has now got cleaned ', cleaned_instruction)
         if not cleaned_instruction:
+            print('none state')
             return None
-        
+
+        if cleaned_instruction[0] not in self.dispatch_catalogue.keys():
+            print('not in keys')
+            return None
+
+        if cleaned_instruction[0] == 'D':
+            print('D detected')
+            if cleaned_instruction[1:] not in self.dispatch_catalogue['D']:
+                print('Number dialed is not available to us')
+            else:
+                cat_val = self.dispatch_catalogue['D'][cleaned_instruction[1:]]
+                print('number cat val is ', cat_val)
+                if cat_val[0] == '!':
+                    print('Print command activated!', cat_val)
+
+    def start_listening(self):
+        '''
+        Start listening to the comm port
+        for messages.
+        '''
+        def handle_byte(b) -> str:
+            try:
+                decoded_data = raw_data.decode(encoding='utf-8')
+            except UnicodeDecodeError:
+                decoded_data = 'x?x'
+            return decoded_data
+
+        current_command = ''
+
+        while self.serial_cx.is_open:
+            raw_data = self.serial_cx.read()
+            if raw_data:
+                decoded_data = handle_byte(raw_data)
+                if decoded_data not in self.control_characters:
+                    current_command += decoded_data
+                else:
+                    if current_command:
+                        self.handle_incoming_instruction(current_command)
+                        current_command = ''
 
 if __name__ == "__main__":
     g = GSGC7Interface('COM5')
+    g.start_listening()
