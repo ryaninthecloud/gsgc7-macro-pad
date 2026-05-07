@@ -12,6 +12,10 @@ from serial import (
     SerialTimeoutException,
     SerialException
 )
+from os import (
+    path,
+    chdir
+)
 
 import time
 
@@ -21,11 +25,11 @@ class GSGC7Interface:
         Args:
             com_port (str): the comm port that is connected to GSGC7
         '''
+        self.dispatch_catalogue = None
         self.com_port = com_port
         self.serial_cx = self.__create_connection()
         self.control_characters = ['\n', '\r', '\r\n']
-        time.sleep(2)
-
+        self.read_catalogue('windows')
     def __create_connection(self) -> Serial:
         '''
         Creates connection to the device
@@ -86,17 +90,6 @@ class GSGC7Interface:
 
         return instructive_portion
 
-    def send_ringtone(self) -> bool:
-        '''
-        Sends a ring command to the GSGC7 which
-        sounds a bleep and illuminates the red
-        ISDN Line light for a short period.
-
-        Returns:
-            result (bool)
-        '''
-        return self.__send_instruction('RING')
-
     def __send_instruction(self, instruction: str) -> bool:
         '''
         For communicating with the GSGC7 device -- this
@@ -135,6 +128,59 @@ class GSGC7Interface:
         time.sleep(1)
         print('Delivery failed within alloted tries.') if not delivered else None
         return delivered
+
+    def send_ringtone(self) -> bool:
+        '''
+        Sends a ring command to the GSGC7 which
+        sounds a bleep and illuminates the red
+        ISDN Line light for a short period.
+
+        Returns:
+            result (bool)
+        '''
+        return self.__send_instruction('RING')
+
+    def read_catalogue(self, os_type: str) ->  None:
+        '''
+        Read from the catalogue file in same directory
+
+        Args:
+            os_type (str): [windows, macos]
+
+        Returns:
+            None
+        '''
+        try:
+            if os_type.lower() == 'windows':
+                from catalogue import windows_dispatch_catalogue
+                self.dispatch_catalogue = windows_dispatch_catalogue
+            elif os_type.lower() == 'macos':
+                from catalogue import macos_dispatch_catalogue
+                self.dispatch_catalogue = macos_dispatch_catalogue
+        except ModuleNotFoundError:
+            print('Cannot find catalogue module')
+            exit(0)
+
+        return None
+        
+
+    def handle_incoming_instruction(self, raw_instr: bytes) -> None:
+        '''
+        Reads the catalogue of automations
+        and calls the correct dispatcher
+        for the instruction
+
+        Args:
+            raw_instr (bytes): a raw message/AT command
+
+        Returns:
+            None
+        '''
+        cleaned_instruction = self.__parse_instruction(raw_instr)
+
+        if not cleaned_instruction:
+            return None
+        
 
 if __name__ == "__main__":
     g = GSGC7Interface('COM5')

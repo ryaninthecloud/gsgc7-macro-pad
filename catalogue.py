@@ -10,9 +10,13 @@ strings:
 
 '''
 
-dispatch_catalogue = {
+windows_dispatch_catalogue = {
     'D' : {
         '1' : print
     },
     'H' : ''
+}
+
+macos_dispatch_catalogue = {
+
 }
