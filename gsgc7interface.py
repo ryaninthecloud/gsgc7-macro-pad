@@ -232,7 +232,7 @@ class GSGC7Interface:
                 else:
                     cat_val()
                     self.__handle_success()
-
+                    
         return None
 
     def start_listening(self):

@@ -12,9 +12,55 @@ Called in interface by x['y']('1','2') --> returns '12'
 '''
 from os import system
 
+def windows_focus_app(application_name: str):
+    '''
+    Used to put an application in focus if it
+    is already open
+
+    Args:
+        application_name (str): application to focus
+    Returns:
+        None
+    '''
+    system(f"""powershell.exe -command\
+            $wshell = New-Object -ComObject wscript.shell;\
+            $wshell.AppActivate('{application_name}');\
+            """)
+
+def windows_send_keystroke(stroke_to_send: str):
+    '''
+    Used to send a particular keystroke
+    to Windows via Powershell. Is it slow? Yes.
+    Does it work? Yes. And that's what this project
+    is all about. Otherwise I'd just buy a Macro keypad.
+    
+    Args:
+        stroke_to_send (str): keystroke to send
+    Returns:
+        None
+    '''
+    system(f"""powershell.exe $wshell = New-Object -ComObject wscript.shell;\
+            $wshell.SendKeys('{stroke_to_send}')""")
+
+def windows_focus_and_control(app_to_focus: str, stroke_to_send: str):
+    '''
+    A combined function using the same WShell instance
+    to call an app to focus an then send a keystroke
+
+    Args:
+        app_to_focus (str): name of app to focus
+        stroke_to_send (str): keystroke to send
+    '''
+    system(f"""powershell.exe -command\
+            $wshell = New-Object -ComObject wscript.shell;\
+            $wshell.AppActivate('{app_to_focus}');\
+            $wshell.SendKeys('{stroke_to_send}');\
+            """)
+
 windows_dispatch_catalogue = {
     'D' : {
-        '1' : lambda: system('start explorer.exe')
+        '1' : lambda: system('start explorer.exe'),
+        '2' : lambda: windows_focus_and_control('Spotify', ' ')
     },
     'H' : lambda a,b: print(a+b)
 }
