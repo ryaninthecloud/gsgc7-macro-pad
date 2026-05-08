@@ -144,7 +144,23 @@ class GSGC7Interface:
             exit(0)
 
         return None
-        
+
+    def __handle_success(self) -> None:
+        '''
+        Called after a command has been executed
+
+        Args:
+            None
+    
+        Returns:
+            None
+        '''
+        self.__send_instruction('CONNECT')
+        time.sleep(0.5)
+        self.__send_instruction('FRAMED')
+        time.sleep(0.5)
+        self.__send_instruction('NO CARRIER')
+
     def send_ringtone(self) -> bool:
         '''
         Sends a ring command to the GSGC7 which
@@ -215,10 +231,9 @@ class GSGC7Interface:
                     return None
                 else:
                     cat_val()
-        return None
+                    self.__handle_success()
 
-                
-        
+        return None
 
     def start_listening(self):
         '''
