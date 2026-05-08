@@ -157,6 +157,28 @@ class GSGC7Interface:
         '''
         return self.__send_instruction('RING')
 
+    def send_no_carrier(self) -> bool:
+        '''
+        Look, we work with what we have and I think
+        that NO CARRIER might be the best approach to
+        a positive status message to close the cx once
+        a command is dialed in to the pad
+        
+        Returns:
+            result (bool)
+        '''
+        return self.__send_instruction('NO CARRIER')
+
+    def send_connect(self) -> bool:
+        '''
+        Sends a CONNECT to GCGC7 - this will need to be
+        followed by a FRAMED command to complete the connection.
+
+        Returns:
+            result (bool)
+        '''
+        return self.__send_instruction('CONNECT')
+
     def handle_incoming_instruction(self, raw_command: str) -> None:
         '''
         Reads the catalogue of automations
@@ -170,29 +192,29 @@ class GSGC7Interface:
             None
         '''
         if not self.dispatch_catalogue:
-            print('No dispatch catalogue loaded')
             exit(0)
 
         cleaned_instruction = self.__parse_instruction(raw_command)
 
-        print('handler has now got cleaned ', cleaned_instruction)
         if not cleaned_instruction:
-            print('none state')
             return None
 
         if cleaned_instruction[0] not in self.dispatch_catalogue.keys():
-            print('not in keys')
             return None
 
         if cleaned_instruction[0] == 'D':
-            print('D detected')
+            if len(cleaned_instruction) < 2:
+                return None
             if cleaned_instruction[1:] not in self.dispatch_catalogue['D']:
-                print('Number dialed is not available to us')
+                return None
             else:
                 cat_val = self.dispatch_catalogue['D'][cleaned_instruction[1:]]
-                print('number cat val is ', cat_val)
                 if cat_val[0] == '!':
-                    print('Print command activated!', cat_val)
+                    print('Terminal print >> ', cat_val)
+                    return
+
+                
+        
 
     def start_listening(self):
         '''
