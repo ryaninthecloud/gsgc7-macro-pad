@@ -202,6 +202,9 @@ class GSGC7Interface:
         if cleaned_instruction[0] not in self.dispatch_catalogue.keys():
             return None
 
+        if cleaned_instruction[0] == 'H':
+            self.dispatch_catalogue['H']()
+
         if cleaned_instruction[0] == 'D':
             if len(cleaned_instruction) < 2:
                 return None

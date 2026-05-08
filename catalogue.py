@@ -12,13 +12,14 @@ strings:
 
 '''
 
+def my_command():
+    print('hello! from the catalogue!')
+
 windows_dispatch_catalogue = {
     'D' : {
         '1' : '!Someone is calling us!'
     },
-    'H' : {
-        10 
-    }
+    'H' : my_command
 }
 
 macos_dispatch_catalogue = {
