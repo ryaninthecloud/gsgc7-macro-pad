@@ -14,9 +14,8 @@ from serial import (
     SerialTimeoutException,
     SerialException
 )
-from os import (
-    path,
-    chdir
+from typing import (
+    Callable
 )
 
 import time
@@ -203,7 +202,7 @@ class GSGC7Interface:
             return None
 
         if cleaned_instruction[0] == 'H':
-            self.dispatch_catalogue['H']()
+            self.dispatch_catalogue['H']('yummy', 'delicious')
 
         if cleaned_instruction[0] == 'D':
             if len(cleaned_instruction) < 2:
@@ -212,9 +211,11 @@ class GSGC7Interface:
                 return None
             else:
                 cat_val = self.dispatch_catalogue['D'][cleaned_instruction[1:]]
-                if cat_val[0] == '!':
-                    print('Terminal print >> ', cat_val)
-                    return
+                if not isinstance(cat_val, Callable):
+                    return None
+                else:
+                    cat_val()
+        return None
 
                 
         
