@@ -221,10 +221,16 @@ class GSGC7Interface:
             self.dispatch_catalogue['H']()
 
         if cleaned_instruction[0] == 'D':
-            if len(cleaned_instruction) < 2:
+            if len(cleaned_instruction) < 2 or cleaned_instruction == 'D':
+                d_hotkey = self.dispatch_catalogue['_D']
+                d_hotkey()
+                self.__handle_success()
                 return None
+
             if cleaned_instruction[1:] not in self.dispatch_catalogue['D']:
+                self.__send_instruction('RING')
                 return None
+
             else:
                 cat_val = self.dispatch_catalogue['D'][cleaned_instruction[1:]]
                 if not isinstance(cat_val, Callable):

@@ -59,6 +59,7 @@ def windows_focus_and_control(app_to_focus: str, stroke_to_send: str):
             """)
 
 windows_dispatch_catalogue = {
+    '_D' : lambda: print('This is the D hotkey'),
     'D' : {
         '1' : lambda: system('start wt.exe'),
         '2' : lambda: windows_focus_and_control('Spotify', ' '),
