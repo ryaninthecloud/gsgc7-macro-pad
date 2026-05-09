@@ -52,8 +52,9 @@ def windows_focus_and_control(app_to_focus: str, stroke_to_send: str):
         stroke_to_send (str): keystroke to send
     '''
     system(f"""powershell.exe -command\
+            {app_to_focus}.exe;\
             $wshell = New-Object -ComObject wscript.shell;\
-            $wshell.AppActivate('{app_to_focus}');\
+            $wshell.AppActivate('{app_to_focus}'); Sleep 0.5;\
             $wshell.SendKeys('{stroke_to_send}');\
             """)
 
