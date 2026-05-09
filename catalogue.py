@@ -60,10 +60,13 @@ def windows_focus_and_control(app_to_focus: str, stroke_to_send: str):
 
 windows_dispatch_catalogue = {
     'D' : {
-        '1' : lambda: system('start explorer.exe'),
-        '2' : lambda: windows_focus_and_control('Spotify', ' ')
+        '1' : lambda: system('start wt.exe'),
+        '2' : lambda: windows_focus_and_control('Spotify', ' '),
+        '31' : lambda: [system(f'{app}') for app in ['start winword.exe','start outlook.exe','spotify','code']],
+        '41' : lambda: system('explorer.exe https://portal.azure.com'),
+        '#' : lambda: system('rundll32.exe user32.dll,LockWorkStation')
     },
-    'H' : lambda a,b: print(a+b)
+    'H' : lambda : windows_send_keystroke('%{F4}')
 }
 
 macos_dispatch_catalogue = {

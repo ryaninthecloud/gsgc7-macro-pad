@@ -158,7 +158,7 @@ class GSGC7Interface:
         self.__send_instruction('CONNECT')
         time.sleep(0.5)
         self.__send_instruction('FRAMED')
-        time.sleep(0.5)
+        time.sleep(1)
         self.__send_instruction('NO CARRIER')
 
     def send_ringtone(self) -> bool:
@@ -218,7 +218,7 @@ class GSGC7Interface:
             return None
 
         if cleaned_instruction[0] == 'H':
-            self.dispatch_catalogue['H']('yummy', 'delicious')
+            self.dispatch_catalogue['H']()
 
         if cleaned_instruction[0] == 'D':
             if len(cleaned_instruction) < 2:
