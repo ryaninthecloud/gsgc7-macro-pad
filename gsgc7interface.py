@@ -156,9 +156,7 @@ class GSGC7Interface:
             None
         '''
         self.__send_instruction('CONNECT')
-        time.sleep(0.5)
-        self.__send_instruction('FRAMED')
-        time.sleep(1)
+        time.sleep(2)
         self.__send_instruction('NO CARRIER')
 
     def send_ringtone(self) -> bool:
