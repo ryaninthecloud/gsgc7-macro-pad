@@ -5,7 +5,6 @@ the GSGC7 unit and fires
 the relevant automation.
 
 TODO: MacOS port
-TODO: Detect OS & call catalogue reader
 
 '''
 
@@ -30,7 +29,19 @@ class GSGC7Interface:
         self.com_port = com_port
         self.serial_cx = self.__create_connection()
         self.control_characters = ['\n', '\r', '\r\n']
-        self.__read_catalogue('windows')
+        self.__read_catalogue()
+
+    def __detect_platform(self) -> str:
+        '''
+        Returns a formatted operating
+        system name of either:
+            windows
+            darwin (for MacOS)
+            or linux 
+        
+        '''
+        import platform
+        return platform.system().lower().strip()
 
     def __create_connection(self) -> Serial:
         '''
@@ -122,16 +133,18 @@ class GSGC7Interface:
         print('Delivery failed within alloted tries.') if not delivered else None
         return delivered
 
-    def __read_catalogue(self, os_type: str) ->  None:
+    def __read_catalogue(self) ->  None:
         '''
         Read from the catalogue file in same directory
 
         Args:
-            os_type (str): [windows, macos]
+            None
 
         Returns:
             None
         '''
+        os_type = self.__detect_platform()
+
         try:
             if os_type.lower() == 'windows':
                 from catalogue import windows_dispatch_catalogue
